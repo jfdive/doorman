@@ -9,6 +9,7 @@ from doorman.database import (
     Column,
     Table,
     ForeignKey,
+    Index,
     Model,
     SurrogatePK,
     db,
@@ -17,6 +18,7 @@ from doorman.database import (
     ARRAY,
     JSONB,
     INET,
+    declared_attr,
 )
 from doorman.extensions import bcrypt
 
@@ -359,6 +361,13 @@ class ResultLog(SurrogatePK, Model):
         elif node_id:
             self.node_id = node_id
 
+    @declared_attr
+    def __table_args__(cls):
+        return (
+            Index('idx_%s_node_id' % cls.__tablename__, 'node_id', 'id'),
+            Index('idx_%s_timestamp_desc' % cls.__tablename__, cls.timestamp.desc(), 'id'),
+        )
+
 
 class StatusLog(SurrogatePK, Model):
 
@@ -385,6 +394,13 @@ class StatusLog(SurrogatePK, Model):
         self.created = created
         self.node = node
         self.version = version
+
+    @declared_attr
+    def __table_args__(cls):
+        return (
+            Index('idx_%s_node_id' % cls.__tablename__, 'node_id', 'id'),
+            Index('idx_%s_timestamp_desc' % cls.__tablename__, cls.created.desc(), 'id'),
+        )
 
 
 class DistributedQuery(SurrogatePK, Model):
@@ -436,6 +452,14 @@ class DistributedQueryTask(SurrogatePK, Model):
         elif distributed_query_id:
             self.distributed_query_id = distributed_query_id
 
+    @declared_attr
+    def __table_args__(cls):
+        return (
+            Index('idx_%s_status' % cls.__tablename__, 'status', 'id'),
+            Index('idx_%s_node_id' % cls.__tablename__, 'node_id', 'id'),
+            Index('idx_%s_query_id' % cls.__tablename__, 'distributed_query_id', 'id'),
+        )
+
 
 class DistributedQueryResult(SurrogatePK, Model):
 
@@ -463,6 +487,13 @@ class DistributedQueryResult(SurrogatePK, Model):
         self.distributed_query = distributed_query
         self.distributed_query_task = distributed_query_task
 
+    @declared_attr
+    def __table_args__(cls):
+        return (
+            Index('idx_%s_task_id' % cls.__tablename__, 'distributed_query_task_id', 'id'),
+            Index('idx_%s_query_id' % cls.__tablename__, 'distributed_query_id', 'id'),
+            Index('idx_%s_query_task_id' % cls.__tablename__, 'distributed_query_id', 'distributed_query_task_id'),
+        )
 
 class Rule(SurrogatePK, Model):
 
