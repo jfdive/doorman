@@ -564,7 +564,8 @@ def tag_file(file_path_id):
 @blueprint.route('/tags')
 @login_required
 def tags():
-    tags = {t.value: {} for t in Tag.query.all()}
+    tags = dict((t.value, {}) for t in Tag.query.all())
+
     if request.is_xhr:
         return jsonify(tags=tags.keys())
 
