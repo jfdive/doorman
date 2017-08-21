@@ -9,13 +9,15 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repos
               libffi-dev \
               musl \
               nodejs \
-              nodejs-npm \
+              nodejs-current-npm \
               postgresql-dev \
               py2-pip \
               python \
               python-dev \
               redis \
               runit \
+              nginx \
+              openssl \
   && pip install --upgrade pip \
   && npm install -g bower less \
   && rm /var/cache/apk/*
@@ -40,6 +42,7 @@ COPY . /src/
 RUN rm -rf /etc/service \
   && mv /src/docker/service /etc/ \
   && mv /src/docker/redis.conf /etc/ \
+  && mv /src/docker/nginx.conf /etc/nginx/ \
   && if [ ! -f /src/settings.cfg ]; then \
        mv /src/docker/default-settings.cfg /src/settings.cfg; \
      fi \
@@ -53,6 +56,16 @@ RUN cd /src/ \
   && python manage.py assets build \
   && mkdir /var/log/doorman/ \
   && chown doorman:doorman -R . \
-  && chown doorman:doorman /var/log/doorman/
+  && chown doorman:doorman /var/log/doorman/ 
+
+# setup nginx self-signed cert if non existent
+RUN if [ ! -f /etc/nginx/cert.crt ]; then \
+    openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 \
+         -keyout /etc/nginx/cert.key \
+         -out /etc/nginx/cert.crt \
+         -subj "/C=XX/ST=doorman/L=doorman/O=doorman/CN=doorman"; \
+    fi \
+    && chown -R nginx.nginx /etc/nginx/ \
+    && chmod 0600 /etc/nginx/cert.key
 
 CMD ["runsvdir", "/etc/service"]

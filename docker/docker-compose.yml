@@ -1,0 +1,10 @@
+postgres:
+  container_name: postgres
+  restart: always
+  image: postgres:latest
+  environment:
+    - POSTGRES_PASSWORD=548b4a24751881ce735f89a27db4ba7087a3afbd
+  volumes:
+    - /home/jdive/docker/postgresql/database:/var/lib/postgresql/data
+  ports:
+    - "5432:5432"

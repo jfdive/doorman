@@ -7,10 +7,14 @@ if [ -z $DOORMAN_ENV ]; then
 fi
 export DOORMAN_SETTINGS=$PWD/settings.cfg
 
+su doorman -s "/bin/sh" -c "python /src/manage.py db upgrade"
+
 exec chpst \
   -u doorman \
   -U doorman \
   gunicorn \
     --workers 4 \
-    --bind 0.0.0.0:5000 \
+    --bind 0.0.0.0:5001 \
+    --access-logfile /var/log/doorman/gunicorn.access.log \
+    --error-logfile /var/log/doorman/gunicorn.error.log \
     manage:app
